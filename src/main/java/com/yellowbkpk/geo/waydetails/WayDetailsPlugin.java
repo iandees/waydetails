@@ -8,10 +8,12 @@ import java.awt.event.KeyEvent;
 import java.util.Collection;
 
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 
 import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.data.SelectionChangedListener;
+import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.data.osm.OsmPrimitiveType;
 import org.openstreetmap.josm.data.osm.Way;
@@ -62,13 +64,21 @@ public class WayDetailsPlugin extends Plugin {
         }
 
         public void actionPerformed(ActionEvent e) {
-            showDetailsDialogForWay(selectedWay);
+            if (selectedWay != null) {
+                showDetailsDialogForWay(selectedWay);
+            }
         }
         
     }
 
     private void showDetailsDialogForWay(Way way) {
-        System.out.println("Way details for way: " + way);
+        StringBuilder b = new StringBuilder();
+        for (Node node : selectedWay.getNodes()) {
+            b.append(node.getId());
+            b.append(" ");
+        }
+        String string = JOptionPane.showInputDialog(Main.map, "Modify way order:", b.toString());
+        System.out.println(string);
     }
 
     private void enableWayDetailsMenuItem() {
