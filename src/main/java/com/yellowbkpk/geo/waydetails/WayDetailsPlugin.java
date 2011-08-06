@@ -22,6 +22,8 @@ import org.openstreetmap.josm.plugins.Plugin;
 import org.openstreetmap.josm.plugins.PluginInformation;
 import org.openstreetmap.josm.tools.Shortcut;
 
+import com.yellowbkpk.geo.waydetails.editor.WayEditor;
+
 public class WayDetailsPlugin extends Plugin {
 
     private JMenuItem wayDetailsMenuItem;
@@ -72,13 +74,9 @@ public class WayDetailsPlugin extends Plugin {
     }
 
     private void showDetailsDialogForWay(Way way) {
-        StringBuilder b = new StringBuilder();
-        for (Node node : selectedWay.getNodes()) {
-            b.append(node.getId());
-            b.append(" ");
-        }
-        String string = JOptionPane.showInputDialog(Main.map, "Modify way order:", b.toString());
-        System.out.println(string);
+        WayEditor editor = new WayEditor(Main.main.getEditLayer(), way);
+        editor.setModal(true);
+        editor.setVisible(true);
     }
 
     private void enableWayDetailsMenuItem() {
