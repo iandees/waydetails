@@ -47,8 +47,6 @@ public class WayRefTableModel extends AbstractTableModel implements TableModelLi
     private CopyOnWriteArrayList<INodeRefModelListener> listeners;
     private OsmDataLayer layer;
 
-    private final int UNCONNECTED = Integer.MIN_VALUE;
-
     /**
      * constructor
      */

@@ -5,7 +5,6 @@ import static org.openstreetmap.josm.tools.I18n.tr;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -13,16 +12,16 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.openstreetmap.josm.Main;
+import org.openstreetmap.josm.command.ChangeCommand;
 import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.gui.ExtendedDialog;
 import org.openstreetmap.josm.gui.SideButton;
-import org.openstreetmap.josm.gui.dialogs.relation.MemberTable;
-import org.openstreetmap.josm.gui.dialogs.relation.MemberTableModel;
 import org.openstreetmap.josm.gui.layer.OsmDataLayer;
 import org.openstreetmap.josm.tools.CheckParameterUtil;
 import org.openstreetmap.josm.tools.ImageProvider;
@@ -52,6 +51,7 @@ public class WayEditor extends ExtendedDialog {
 
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(buildWayMemberPanel(), BorderLayout.CENTER);
+        getContentPane().add(buildManipulationToolbar(), BorderLayout.NORTH);
         getContentPane().add(buildOkCancelButtonPanel(), BorderLayout.SOUTH);
 
         setSize(findMaxDialogSize());
@@ -73,7 +73,7 @@ public class WayEditor extends ExtendedDialog {
 
     @Override
     protected Dimension findMaxDialogSize() {
-        return new Dimension(700, 650);
+        return new Dimension(400, 650);
     }
 
     protected void updateTitle() {
@@ -100,10 +100,33 @@ public class WayEditor extends ExtendedDialog {
         return pnl;
     }
 
+    private JToolBar buildManipulationToolbar() {
+        JToolBar tb  = new JToolBar();
+        tb.setFloatable(false);
+
+        // -- move up action
+        MoveUpAction moveUpAction = new MoveUpAction();
+        memberTableModel.getSelectionModel().addListSelectionListener(moveUpAction);
+        tb.add(moveUpAction);
+
+        // -- move down action
+        MoveDownAction moveDownAction = new MoveDownAction();
+        memberTableModel.getSelectionModel().addListSelectionListener(moveDownAction);
+        tb.add(moveDownAction);
+
+        // -- delete action
+        RemoveAction removeSelectedAction = new RemoveAction();
+        memberTable.getSelectionModel().addListSelectionListener(removeSelectedAction);
+        tb.add(removeSelectedAction);
+        
+        return tb;
+    }
+
     protected JPanel buildOkCancelButtonPanel() {
         JPanel pnl = new JPanel();
         pnl.setLayout(new FlowLayout(FlowLayout.CENTER));
 
+        pnl.add(new SideButton(new ApplyAction()));
         pnl.add(new SideButton(new OKAction()));
         pnl.add(new SideButton(new CancelAction()));
         return pnl;
@@ -120,6 +143,9 @@ public class WayEditor extends ExtendedDialog {
         }
 
         public void actionPerformed(ActionEvent e) {
+            Main.main.undoRedo.add(new ChangeCommand(waySnapshot, way));
+            setWay(way);
+            getLayer().data.fireSelectionChanged();
         }
     }
 
@@ -134,6 +160,9 @@ public class WayEditor extends ExtendedDialog {
         }
 
         public void actionPerformed(ActionEvent e) {
+            Main.main.undoRedo.add(new ChangeCommand(waySnapshot, way));
+            getLayer().data.fireSelectionChanged();
+            setVisible(false);
         }
     }
 
@@ -157,10 +186,11 @@ public class WayEditor extends ExtendedDialog {
     }
     
     class MoveUpAction extends AbstractAction implements ListSelectionListener {
+        private static final long serialVersionUID = 1L;
+
         public MoveUpAction() {
             putValue(SHORT_DESCRIPTION, tr("Move the currently selected members up"));
             putValue(SMALL_ICON, ImageProvider.get("dialogs", "moveup"));
-            // putValue(NAME, tr("Move Up"));
             Shortcut.registerShortcut("wayeditor:moveup", tr("Way Editor: Move Up"), KeyEvent.VK_N,
                     Shortcut.GROUP_MNEMONIC);
             setEnabled(false);
@@ -176,10 +206,11 @@ public class WayEditor extends ExtendedDialog {
     }
 
     class MoveDownAction extends AbstractAction implements ListSelectionListener {
+        private static final long serialVersionUID = 1L;
+
         public MoveDownAction() {
             putValue(SHORT_DESCRIPTION, tr("Move the currently selected members down"));
             putValue(SMALL_ICON, ImageProvider.get("dialogs", "movedown"));
-            // putValue(NAME, tr("Move Down"));
             Shortcut.registerShortcut("wayeditor:moveup", tr("Way Editor: Move Down"), KeyEvent.VK_J,
                     Shortcut.GROUP_MNEMONIC);
             setEnabled(false);
@@ -195,10 +226,11 @@ public class WayEditor extends ExtendedDialog {
     }
 
     class RemoveAction extends AbstractAction implements ListSelectionListener {
+        private static final long serialVersionUID = 1L;
+
         public RemoveAction() {
             putValue(SHORT_DESCRIPTION, tr("Remove the currently selected members from this way"));
             putValue(SMALL_ICON, ImageProvider.get("dialogs", "remove"));
-            // putValue(NAME, tr("Remove"));
             Shortcut.registerShortcut("wayeditor:remove", tr("Way Editor: Remove"), KeyEvent.VK_J,
                     Shortcut.GROUP_MNEMONIC);
             setEnabled(false);
